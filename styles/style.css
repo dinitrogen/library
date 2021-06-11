@@ -1,3 +1,39 @@
 h1 {
     color: blue;
 }
+
+#bookList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.bookCardDiv {
+    flex-basis: 30%;
+    margin: 5px;
+    border: solid black 3px;
+    border-radius: 10px;
+    background-color: dodgerblue;
+}
+
+.bookInfoDiv {
+    margin: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 20px;
+    color: white;
+}
+
+.buttonDiv {
+    margin: 5px;
+}
+
+.readButton {
+    background-color: forestgreen;
+    color: white;
+}
+
+.delButton {
+    background-color: rgb(148, 31, 47);
+    color: white;
+}
+

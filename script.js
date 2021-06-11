@@ -1,19 +1,12 @@
 let myLibrary = [];
 
-/*
-document.addEventListener('DOMContentLoaded', function() {
-    if (localStorage.getItem('mySavedLibrary')) {
-        loadLibrary();
-        displayLibrary();  
-    } 
-});
-*/
-
+// Assign the DOM elements
 const bookList = document.querySelector("#bookList");
 const newBookFormDiv = document.querySelector('#newBookFormDiv');
 const newBookButton = document.querySelector('#newBookButton');
+const clearLibrary = document.querySelector('#clearLibrary');
 
-
+// Create the form elements
 const newBookForm = document.createElement('form');
 const newTitleField = document.createElement('input');
 newTitleField.setAttribute('type','text');
@@ -37,9 +30,19 @@ submitButton.setAttribute('type','button');
 submitButton.setAttribute('value', 'Submit');
 
 
-
+// Assign the button events
 newBookButton.addEventListener('click', function() {
     generateNewBookForm();
+});
+
+clearLibrary.addEventListener('click', function() {
+    if (prompt("Are you sure? (type 'yes')") === 'yes') {
+        localStorage.clear();
+        myLibrary = [];
+        displayLibrary();
+    } else {
+        return;
+    }
 });
 
 submitButton.addEventListener('click', function() {
@@ -55,7 +58,7 @@ submitButton.addEventListener('click', function() {
     }
 });
 
-
+// Constructor for creating a new book
 function Book(title, author, numPages, haveRead) {
     this.title = title;
     this.author = author;
@@ -63,7 +66,8 @@ function Book(title, author, numPages, haveRead) {
     this.haveRead = haveRead;
 }
 
-
+// Adding localStorage broke these prototype methods
+/*
 Book.prototype.info = function() {
     if (this.haveRead) {
         return `"${this.title}" by ${this.author}, ${this.numPages} pages, have read already.`;
@@ -72,7 +76,6 @@ Book.prototype.info = function() {
     }
 }
 
-
 Book.prototype.toggleRead = function() {
     if (this.haveRead) {
         this.haveRead = false;
@@ -80,30 +83,26 @@ Book.prototype.toggleRead = function() {
         this.haveRead = true;
     }
 }
+*/
 
-
-function addBookToLibrary(title, author, numPages, haveRead) {
-    const newBook = new Book(title, author, numPages, haveRead);
-    myLibrary.push(newBook);
-    saveLibrary();
-}
-
-
+// Update the display every time a new book added/deleted/modified
 function displayLibrary() {
+    // Delete the current list of book cards
     while (bookList.firstChild) {
         bookList.removeChild(bookList.firstChild);
     }
 
-    myLibrary.forEach(function(element, i) {
+    // Creat and display a card for each book in the library
+    for (let element of myLibrary) {
         const bookCardDiv = document.createElement('div');
-        bookCardDiv.setAttribute('class', 'bookCard');
-        bookCardDiv.setAttribute('id', `book${i}`)
+        bookCardDiv.setAttribute('class', 'bookCardDiv');
+        bookCardDiv.setAttribute('id', `book${myLibrary.indexOf(element)}`)
         bookList.appendChild(bookCardDiv);
 
         const bookInfoDiv = document.createElement('div');
         bookInfoDiv.setAttribute('class', 'bookInfoDiv');
         bookCardDiv.appendChild(bookInfoDiv);
-        bookInfoDiv.textContent = element.info();
+        bookInfoDiv.textContent = `${element.title}, ${element.haveRead}`;
         
         const buttonDiv = document.createElement('div');
         buttonDiv.setAttribute('class', 'buttonDiv');
@@ -111,14 +110,19 @@ function displayLibrary() {
 
         const readButton = document.createElement('button');
         readButton.setAttribute('class', 'readButton');
-        readButton.setAttribute('id', `readBook${i}`)
+        readButton.setAttribute('id', `readBook${myLibrary.indexOf(element)}`)
         buttonDiv.appendChild(readButton);
         readButton.textContent = 'Toggle read status';
         readButton.onclick = function() {
-            element.toggleRead();
-            bookInfoDiv.textContent = element.info();            
+            if (element.haveRead) {
+                element.haveRead = false;
+            } else {
+                element.haveRead = true;
+            }
+            bookInfoDiv.textContent = `${element.title}, ${element.haveRead}`;
+            saveLibrary();
         }
-
+                    
         const delButton = document.createElement('button');
         delButton.setAttribute('class', 'delButton');
         buttonDiv.appendChild(delButton);
@@ -127,10 +131,9 @@ function displayLibrary() {
             bookList.removeChild(bookCardDiv);
             myLibrary.splice(myLibrary.indexOf(element), 1);
             saveLibrary();
-            // myLibrary.splice(i, 1); causes unintended duplicate
             console.table(myLibrary); // Remove later
         }
-    });
+    }
 }
 
 
@@ -177,10 +180,9 @@ function addNewBook() {
     const newBook = new Book(newTitle, newAuthor, newNumPages, newHaveRead);
     myLibrary.push(newBook);
     saveLibrary();
-    console.table(myLibrary); // Remove later
 }
 
-
+// Local storage functions to load and save the library when changes are made
 function loadLibrary() {
     myLibrary = JSON.parse(localStorage.getItem("mySavedLibrary"));
 }
@@ -189,6 +191,12 @@ function saveLibrary() {
     localStorage.setItem("mySavedLibrary", JSON.stringify(myLibrary));
 }
 
-// Example
-addBookToLibrary("The Hobbit", "J.R.R. Tolkien", 295, true);
-displayLibrary();
+// Check if a saved library exists when loading the page.
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('mySavedLibrary')) {
+        alert("Found saved library.");
+        loadLibrary();
+        displayLibrary();  
+    } 
+});
+
