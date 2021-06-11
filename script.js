@@ -99,15 +99,55 @@ function displayLibrary() {
         bookCardDiv.setAttribute('id', `book${myLibrary.indexOf(element)}`)
         bookList.appendChild(bookCardDiv);
 
-        const bookInfoDiv = document.createElement('div');
-        bookInfoDiv.setAttribute('class', 'bookInfoDiv');
-        bookCardDiv.appendChild(bookInfoDiv);
-        bookInfoDiv.textContent = `${element.title}, ${element.haveRead}`;
+        const bookTitleDiv = document.createElement('div');
+        bookTitleDiv.setAttribute('class', 'bookTitleDiv');
+        bookCardDiv.appendChild(bookTitleDiv);
+        bookTitleDiv.textContent = `${element.title}`;
+
+        const bookAuthorDiv = document.createElement('div');
+        bookAuthorDiv.setAttribute('class', 'bookAuthorDiv');
+        bookCardDiv.appendChild(bookAuthorDiv);
+        bookAuthorDiv.textContent = `${element.author}`;
         
+        const bookPagesDiv = document.createElement('div');
+        bookPagesDiv.setAttribute('class', 'bookPagesDiv');
+        bookCardDiv.appendChild(bookPagesDiv);
+        bookPagesDiv.textContent = `${element.numPages} pages`
+
         const buttonDiv = document.createElement('div');
         buttonDiv.setAttribute('class', 'buttonDiv');
         bookCardDiv.appendChild(buttonDiv);
+        buttonDiv.textContent = 'Read it?';
 
+        // Read slider
+        const readSwitch = document.createElement('label');
+        readSwitch.setAttribute('class','switch');
+        const readCheckbox = document.createElement('input');
+        readCheckbox.setAttribute('type','checkbox');
+        const readSlider = document.createElement('span');
+        readSlider.setAttribute('class','slider round');
+        buttonDiv.appendChild(readSwitch);
+        readSwitch.appendChild(readCheckbox);
+        readSwitch.appendChild(readSlider);
+
+        if (element.haveRead) {
+            readCheckbox.checked = true;
+        } else {
+            readCheckbox.checked = false;
+        }
+
+        readCheckbox.addEventListener('change', function() {
+            if (readCheckbox.checked) {
+                element.haveRead = true;
+            } else {
+                element.haveRead = false;
+            }
+            saveLibrary();
+        });
+            
+        
+
+        /*
         const readButton = document.createElement('button');
         readButton.setAttribute('class', 'readButton');
         readButton.setAttribute('id', `readBook${myLibrary.indexOf(element)}`)
@@ -122,11 +162,12 @@ function displayLibrary() {
             bookInfoDiv.textContent = `${element.title}, ${element.haveRead}`;
             saveLibrary();
         }
-                    
+        */
+
         const delButton = document.createElement('button');
         delButton.setAttribute('class', 'delButton');
         buttonDiv.appendChild(delButton);
-        delButton.textContent = 'Remove book';
+        delButton.textContent = 'x';
         delButton.onclick = function() {
             bookList.removeChild(bookCardDiv);
             myLibrary.splice(myLibrary.indexOf(element), 1);
