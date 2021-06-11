@@ -1,6 +1,15 @@
 let myLibrary = [];
-const bookList = document.querySelector("#bookList");
 
+/*
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('mySavedLibrary')) {
+        loadLibrary();
+        displayLibrary();  
+    } 
+});
+*/
+
+const bookList = document.querySelector("#bookList");
 const newBookFormDiv = document.querySelector('#newBookFormDiv');
 const newBookButton = document.querySelector('#newBookButton');
 
@@ -23,13 +32,28 @@ newHaveReadLabel.textContent = "Have you read it?";
 const newHaveReadBox = document.createElement('input');
 newHaveReadBox.setAttribute('type','checkbox');
 newHaveReadBox.setAttribute('id', 'newHaveRead');
-const submitButton = document.createElement('button');
-// submitButton.setAttribute('type','submit');
+const submitButton = document.createElement('input');
+submitButton.setAttribute('type','button');
+submitButton.setAttribute('value', 'Submit');
+
+
 
 newBookButton.addEventListener('click', function() {
-    generateNewBookForm()
+    generateNewBookForm();
 });
 
+submitButton.addEventListener('click', function() {
+    if (checkDuplicates()) {
+        alert("Already in your library!");
+        return;
+    } else {
+        addNewBook();
+        displayLibrary();
+        while (newBookFormDiv.firstChild) {
+            newBookFormDiv.removeChild(newBookFormDiv.firstChild);
+        }
+    }
+});
 
 
 function Book(title, author, numPages, haveRead) {
@@ -39,6 +63,7 @@ function Book(title, author, numPages, haveRead) {
     this.haveRead = haveRead;
 }
 
+
 Book.prototype.info = function() {
     if (this.haveRead) {
         return `"${this.title}" by ${this.author}, ${this.numPages} pages, have read already.`;
@@ -46,6 +71,7 @@ Book.prototype.info = function() {
         return `"${this.title}" by ${this.author}, ${this.numPages} pages, have not read yet.`;
     }
 }
+
 
 Book.prototype.toggleRead = function() {
     if (this.haveRead) {
@@ -59,10 +85,15 @@ Book.prototype.toggleRead = function() {
 function addBookToLibrary(title, author, numPages, haveRead) {
     const newBook = new Book(title, author, numPages, haveRead);
     myLibrary.push(newBook);
+    saveLibrary();
 }
 
 
 function displayLibrary() {
+    while (bookList.firstChild) {
+        bookList.removeChild(bookList.firstChild);
+    }
+
     myLibrary.forEach(function(element, i) {
         const bookCardDiv = document.createElement('div');
         bookCardDiv.setAttribute('class', 'bookCard');
@@ -94,12 +125,17 @@ function displayLibrary() {
         delButton.textContent = 'Remove book';
         delButton.onclick = function() {
             bookList.removeChild(bookCardDiv);
+            myLibrary.splice(myLibrary.indexOf(element), 1);
+            saveLibrary();
+            // myLibrary.splice(i, 1); causes unintended duplicate
+            console.table(myLibrary); // Remove later
         }
-        
     });
 }
 
+
 function generateNewBookForm() {
+    newBookForm.reset();
     newBookFormDiv.appendChild(newBookForm);
     newBookForm.appendChild(newTitleField);
     newBookForm.appendChild(newAuthorField);
@@ -107,29 +143,52 @@ function generateNewBookForm() {
     newBookForm.appendChild(newHaveReadLabel);
     newBookForm.appendChild(newHaveReadBox);
     newBookForm.appendChild(submitButton);
-
-    submitButton.addEventListener('click', function() {
-        let newTitle = document.getElementById('newTitle').value;
-        console.log(newTitle);
-        let newAuthor = document.getElementById('newAuthor').value;
-        let newNumPages = document.getElementById('newNumPages').value;
-        let newHaveRead = false;
-        if (document.getElementById('newHaveRead').checked) {
-            newHaveRead = true;
-        } else {
-            newHaveRead = false;
-        }
-        addBookToLibrary(newTitle, newAuthor, newNumPages, newHaveRead);
-        console.table(myLibrary);
-        displayLibrary();
-    });
 }
 
 
+function checkDuplicates() {
+    let newTitle = document.getElementById('newTitle').value;
+    let isDuplicate = false;
+    myLibrary.forEach(function(element) {
+        console.log(newTitle);
+        console.log(element.title);
+        if (newTitle.toLowerCase() === element.title.toLowerCase()) {
+            isDuplicate = true;
+        }
+    });
+    if (isDuplicate) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+function addNewBook() {
+    let newTitle = document.getElementById('newTitle').value;
+    let newAuthor = document.getElementById('newAuthor').value;
+    let newNumPages = document.getElementById('newNumPages').value;
+    let newHaveRead = false;
+    if (document.getElementById('newHaveRead').checked) {
+        newHaveRead = true;
+    } else {
+        newHaveRead = false;
+    }
+    const newBook = new Book(newTitle, newAuthor, newNumPages, newHaveRead);
+    myLibrary.push(newBook);
+    saveLibrary();
+    console.table(myLibrary); // Remove later
+}
+
+
+function loadLibrary() {
+    myLibrary = JSON.parse(localStorage.getItem("mySavedLibrary"));
+}
+
+function saveLibrary() {
+    localStorage.setItem("mySavedLibrary", JSON.stringify(myLibrary));
+}
+
+// Example
 addBookToLibrary("The Hobbit", "J.R.R. Tolkien", 295, true);
-addBookToLibrary("The Hobbit 2", "J.R.R. Tolkien", 295, true);
-addBookToLibrary("The Hobbit 4", "J.R.R. Tolkien", 295, true);
-
-console.table(myLibrary);
-
-// displayLibrary();
+displayLibrary();
