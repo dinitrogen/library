@@ -59,11 +59,23 @@ submitButton.addEventListener('click', function() {
 });
 
 // Constructor for creating a new book
-function Book(title, author, numPages, haveRead) {
-    this.title = title;
-    this.author = author;
-    this.numPages = numPages;
-    this.haveRead = haveRead;
+// function Book(title, author, numPages, haveRead) {
+//     this.title = title;
+//     this.author = author;
+//     this.numPages = numPages;
+//     this.haveRead = haveRead;
+// }
+
+// Refactored to class syntax
+class Book {
+    
+    constructor(title, author, numPages, haveRead) {
+        this.title = title;
+        this.author = author;
+        this.numPages = numPages;
+        this.haveRead = haveRead;
+    }
+    
 }
 
 // Adding localStorage broke these prototype methods
