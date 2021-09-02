@@ -5,38 +5,13 @@ const library = function() {
     // Assign the DOM elements
     const bookList = document.querySelector("#bookList");
     const newBookFormDiv = document.querySelector('#newBookFormDiv');
+
     const newBookButton = document.querySelector('#newBookButton');
-    const clearLibrary = document.querySelector('#clearLibrary');
-
-    // Create the form elements
-    const newBookForm = document.createElement('form');
-    const newTitleField = document.createElement('input');
-    newTitleField.setAttribute('type','text');
-    newTitleField.setAttribute('placeholder','Title');
-    newTitleField.setAttribute('id', 'newTitle');
-    const newAuthorField = document.createElement('input');
-    newAuthorField.setAttribute('type','text');
-    newAuthorField.setAttribute('placeholder','Author');
-    newAuthorField.setAttribute('id', 'newAuthor');
-    const newNumPagesField = document.createElement('input');
-    newNumPagesField.setAttribute('type','text');
-    newNumPagesField.setAttribute('placeholder','# of pages');
-    newNumPagesField.setAttribute('id', 'newNumPages');
-    const newHaveReadLabel = document.createElement('label');
-    newHaveReadLabel.textContent = "Have you read it?";
-    const newHaveReadBox = document.createElement('input');
-    newHaveReadBox.setAttribute('type','checkbox');
-    newHaveReadBox.setAttribute('id', 'newHaveRead');
-    const submitButton = document.createElement('input');
-    submitButton.setAttribute('type','button');
-    submitButton.setAttribute('value', 'Submit');
-
-
-    // Assign the button events
     newBookButton.addEventListener('click', function() {
         generateNewBookForm();
     });
 
+    const clearLibrary = document.querySelector('#clearLibrary');
     clearLibrary.addEventListener('click', function() {
         if (prompt("Are you sure? (type 'yes')") === 'yes') {
             localStorage.clear();
@@ -47,45 +22,91 @@ const library = function() {
         }
     });
 
+
+    // Create the form elements
+    const newBookForm = document.createElement('form');
+
+    const newTitleField = document.createElement('input');
+    newTitleField.setAttribute('type','text');
+    newTitleField.setAttribute('placeholder','Title');
+    newTitleField.setAttribute('id', 'newTitle');
+    newTitleField.setAttribute('required', 'true');
+
+    const newAuthorField = document.createElement('input');
+    newAuthorField.setAttribute('type','text');
+    newAuthorField.setAttribute('placeholder','Author');
+    newAuthorField.setAttribute('id', 'newAuthor');
+    newAuthorField.setAttribute('required', 'true');
+
+
+    const newNumPagesField = document.createElement('input');
+    newNumPagesField.setAttribute('type','number');
+    newNumPagesField.setAttribute('placeholder','# of pages');
+    newNumPagesField.setAttribute('id', 'newNumPages');
+    newNumPagesField.setAttribute('required', 'true');
+
+    const newHaveReadLabel = document.createElement('label');
+    newHaveReadLabel.textContent = "Have you read it?";
+    const newHaveReadBox = document.createElement('input');
+    newHaveReadBox.setAttribute('type','checkbox');
+    newHaveReadBox.setAttribute('id', 'newHaveRead');
+
+    // Submit button with form validation
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Submit';
     submitButton.addEventListener('click', function() {
-        if (checkDuplicates()) {
-            alert("Already in your library!");
-            return;
+        if (newTitleField.validity.valueMissing) {
+            newTitleField.setCustomValidity('Please enter a title.');
+        } else if (checkDuplicates()) {
+            newTitleField.setCustomValidity('Already in your library!');
         } else {
-            addNewBook();
-            displayLibrary();
-            while (newBookFormDiv.firstChild) {
-                newBookFormDiv.removeChild(newBookFormDiv.firstChild);
-            }
+            newTitleField.setCustomValidity('');
+        }
+        
+        if (newAuthorField.validity.valueMissing) {
+            newAuthorField.setCustomValidity('Please enter an author.');
+        } else {
+            newAuthorField.setCustomValidity('');
+        }
+
+        if (newNumPagesField.validity.valueMissing) {
+            newNumPagesField.setCustomValidity('Please enter # of pages.');
+        } else {
+            newNumPagesField.setCustomValidity('');
+        }
+
+        if (!newTitleField.validity.valid || !newAuthorField.validity.valid || !newNumPagesField.validity.valid) {
+            return;
+        }
+
+        addNewBook();
+        displayLibrary();
+        while (newBookFormDiv.firstChild) {
+            newBookFormDiv.removeChild(newBookFormDiv.firstChild);
         }
     });
 
-    // Constructor for creating a new book
-    function Book(title, author, numPages, haveRead) {
-        this.title = title;
-        this.author = author;
-        this.numPages = numPages;
-        this.haveRead = haveRead;
+
+    // Original constructor for creating a new book
+    // function Book(title, author, numPages, haveRead) {
+    //     this.title = title;
+    //     this.author = author;
+    //     this.numPages = numPages;
+    //     this.haveRead = haveRead;
+    // }
+
+    // Refactored to class syntax
+    class Book {
+        
+        constructor(title, author, numPages, haveRead) {
+            this.title = title;
+            this.author = author;
+            this.numPages = numPages;
+            this.haveRead = haveRead;
+        }
+        
     }
 
-    // Adding localStorage broke these prototype methods
-    /*
-    Book.prototype.info = function() {
-        if (this.haveRead) {
-            return `"${this.title}" by ${this.author}, ${this.numPages} pages, have read already.`;
-        } else {
-            return `"${this.title}" by ${this.author}, ${this.numPages} pages, have not read yet.`;
-        }
-    }
-
-    Book.prototype.toggleRead = function() {
-        if (this.haveRead) {
-            this.haveRead = false;
-        } else {
-            this.haveRead = true;
-        }
-    }
-    */
 
     // Update the display every time a new book added/deleted/modified
     function displayLibrary() {
@@ -147,24 +168,6 @@ const library = function() {
                 saveLibrary();
             });
                 
-            
-
-            /*
-            const readButton = document.createElement('button');
-            readButton.setAttribute('class', 'readButton');
-            readButton.setAttribute('id', `readBook${myLibrary.indexOf(element)}`)
-            buttonDiv.appendChild(readButton);
-            readButton.textContent = 'Toggle read status';
-            readButton.onclick = function() {
-                if (element.haveRead) {
-                    element.haveRead = false;
-                } else {
-                    element.haveRead = true;
-                }
-                bookInfoDiv.textContent = `${element.title}, ${element.haveRead}`;
-                saveLibrary();
-            }
-            */
 
             const delButton = document.createElement('button');
             delButton.setAttribute('class', 'delButton');
