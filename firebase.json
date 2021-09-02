@@ -1,0 +1,11 @@
+{
+  "hosting": {
+    "site": "library-ac551",
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
