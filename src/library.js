@@ -1,4 +1,19 @@
+import { getFirestore } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore"; 
+
 const library = function() {
+    
+    const db = getFirestore();
+    try {
+        const docRef =  addDoc(collection(db, "users"), {
+          first: "Testing",
+          last: "Lovelace2",
+          born: 1815
+        });
+        console.log("Document written with ID: ", docRef.id);
+      } catch (e) {
+        console.error("Error adding document: ", e);
+      }
 
     let myLibrary = [];
 
