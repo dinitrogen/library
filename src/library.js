@@ -1,19 +1,36 @@
 import { getFirestore } from "firebase/firestore";
-import { collection, addDoc } from "firebase/firestore"; 
+import { collection, addDoc, doc, deleteDoc, setDoc } from "firebase/firestore"; 
 
 const library = function() {
     
     const db = getFirestore();
-    try {
-        const docRef =  addDoc(collection(db, "users"), {
-          first: "Testing",
-          last: "Lovelace2",
-          born: 1815
-        });
-        console.log("Document written with ID: ", docRef.id);
-      } catch (e) {
-        console.error("Error adding document: ", e);
-      }
+    
+    async function addToFirestore(Book) {
+        try {
+            const docRef =  await addDoc(collection(db, "books"), {
+            title: Book.title,
+            author: Book.author,
+            numPages: Book.numPages,
+            haveRead: Book.haveRead
+            });
+            console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    }
+
+
+    async function setLibrary(library) {
+        // Firestore would not accept myLibrary as is (called it a custom object). 
+        // Found solution here (transform array of Books into an array of pure JS objects. https://stackoverflow.com/questions/48156234/function-documentreference-set-called-with-invalid-data-unsupported-field-val)
+        const firebaseLibrary = library.map((book) => {return Object.assign({}, book)});
+        const docData = {
+            array: firebaseLibrary
+        }
+        await setDoc(doc(db, "libraries", "myLibrary"), docData);
+    }
+    
+
 
     let myLibrary = [];
 
@@ -118,8 +135,7 @@ const library = function() {
             this.author = author;
             this.numPages = numPages;
             this.haveRead = haveRead;
-        }
-        
+        }   
     }
 
 
@@ -180,7 +196,7 @@ const library = function() {
                 } else {
                     element.haveRead = false;
                 }
-                saveLibrary();
+                // saveLibrary();
             });
                 
 
@@ -191,8 +207,8 @@ const library = function() {
             delButton.onclick = function() {
                 bookList.removeChild(bookCardDiv);
                 myLibrary.splice(myLibrary.indexOf(element), 1);
-                saveLibrary();
-                console.table(myLibrary); // Remove later
+                // saveLibrary();
+                // console.table(myLibrary); // Remove later
             }
         }
     }
@@ -240,26 +256,29 @@ const library = function() {
         }
         const newBook = new Book(newTitle, newAuthor, newNumPages, newHaveRead);
         myLibrary.push(newBook);
-        saveLibrary();
+        addToFirestore(newBook);
+        console.log(myLibrary);
+        // saveLibrary();
+        setLibrary(myLibrary);
     }
 
     // Local storage functions to load and save the library when changes are made
-    function loadLibrary() {
-        myLibrary = JSON.parse(localStorage.getItem("mySavedLibrary"));
-    }
+    // function loadLibrary() {
+    //     myLibrary = JSON.parse(localStorage.getItem("mySavedLibrary"));
+    // }
 
-    function saveLibrary() {
-        localStorage.setItem("mySavedLibrary", JSON.stringify(myLibrary));
-    }
+    // function saveLibrary() {
+    //     localStorage.setItem("mySavedLibrary", JSON.stringify(myLibrary));
+    // }
 
     // Check if a saved library exists when loading the page.
-    document.addEventListener('DOMContentLoaded', function() {
-        if (localStorage.getItem('mySavedLibrary')) {
-            alert("Found saved library.");
-            loadLibrary();
-            displayLibrary();  
-        } 
-    });
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     if (localStorage.getItem('mySavedLibrary')) {
+    //         alert("Found saved library.");
+    //         loadLibrary();
+    //         displayLibrary();  
+    //     } 
+    // });
 }
 
 export { library }
