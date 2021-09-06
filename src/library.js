@@ -1,9 +1,30 @@
 import { getFirestore } from "firebase/firestore";
-import { collection, addDoc, doc, deleteDoc, setDoc } from "firebase/firestore"; 
+import { collection, addDoc, doc, deleteDoc, setDoc, getDoc } from "firebase/firestore"; 
 
 const library = function() {
-    
+        
+    let myLibrary = [];
+
     const db = getFirestore();
+    
+    loadLibrary();
+    
+    async function loadLibrary() {
+        const docRef = doc(db, "libraries", "myLibrary");
+        const docSnap = await getDoc(docRef);
+
+        myLibrary = docSnap.data().array;
+        
+        // console.log(myLibrary);
+        
+        displayLibrary();
+
+        if (docSnap.exists()) {
+            console.log("Library found:", docSnap.data());
+        } else {
+            console.log("No library found!");
+        }
+    }
     
     async function addToFirestore(Book) {
         try {
@@ -19,20 +40,17 @@ const library = function() {
         }
     }
 
-
     async function setLibrary(library) {
         // Firestore would not accept myLibrary as is (called it a custom object). 
         // Found solution here (transform array of Books into an array of pure JS objects. https://stackoverflow.com/questions/48156234/function-documentreference-set-called-with-invalid-data-unsupported-field-val)
         const firebaseLibrary = library.map((book) => {return Object.assign({}, book)});
+        // console.log(firebaseLibrary);
         const docData = {
             array: firebaseLibrary
         }
         await setDoc(doc(db, "libraries", "myLibrary"), docData);
     }
     
-
-
-    let myLibrary = [];
 
     // Assign the DOM elements
     const bookList = document.querySelector("#bookList");
@@ -46,8 +64,9 @@ const library = function() {
     const clearLibrary = document.querySelector('#clearLibrary');
     clearLibrary.addEventListener('click', function() {
         if (prompt("Are you sure? (type 'yes')") === 'yes') {
-            localStorage.clear();
+            // localStorage.clear();
             myLibrary = [];
+            setLibrary(myLibrary);
             displayLibrary();
         } else {
             return;
@@ -86,7 +105,8 @@ const library = function() {
     // Submit button with form validation
     const submitButton = document.createElement('button');
     submitButton.textContent = 'Submit';
-    submitButton.addEventListener('click', function() {
+    submitButton.addEventListener('click', function(e) {
+        
         if (newTitleField.validity.valueMissing) {
             newTitleField.setCustomValidity('Please enter a title.');
         } else if (checkDuplicates()) {
@@ -111,11 +131,13 @@ const library = function() {
             return;
         }
 
+        e.preventDefault();
         addNewBook();
         displayLibrary();
         while (newBookFormDiv.firstChild) {
             newBookFormDiv.removeChild(newBookFormDiv.firstChild);
         }
+
     });
 
 
@@ -146,27 +168,28 @@ const library = function() {
             bookList.removeChild(bookList.firstChild);
         }
 
-        // Creat and display a card for each book in the library
-        for (let element of myLibrary) {
+        // Create and display a card for each book in the library
+        // Note: Loaded library is no longer a custom object so had to refactor to use a traditional for loop.
+        for (let i = 0; i < myLibrary.length; i++) {
             const bookCardDiv = document.createElement('div');
             bookCardDiv.setAttribute('class', 'bookCardDiv');
-            bookCardDiv.setAttribute('id', `book${myLibrary.indexOf(element)}`)
+            bookCardDiv.setAttribute('id', `book${myLibrary.indexOf(myLibrary[i])}`)
             bookList.appendChild(bookCardDiv);
 
             const bookTitleDiv = document.createElement('div');
             bookTitleDiv.setAttribute('class', 'bookTitleDiv');
             bookCardDiv.appendChild(bookTitleDiv);
-            bookTitleDiv.textContent = `${element.title}`;
+            bookTitleDiv.textContent = `${myLibrary[i].title}`;
 
             const bookAuthorDiv = document.createElement('div');
             bookAuthorDiv.setAttribute('class', 'bookAuthorDiv');
             bookCardDiv.appendChild(bookAuthorDiv);
-            bookAuthorDiv.textContent = `${element.author}`;
+            bookAuthorDiv.textContent = `${myLibrary[i].author}`;
             
             const bookPagesDiv = document.createElement('div');
             bookPagesDiv.setAttribute('class', 'bookPagesDiv');
             bookCardDiv.appendChild(bookPagesDiv);
-            bookPagesDiv.textContent = `${element.numPages} pages`
+            bookPagesDiv.textContent = `${myLibrary[i].numPages} pages`
 
             const buttonDiv = document.createElement('div');
             buttonDiv.setAttribute('class', 'buttonDiv');
@@ -184,7 +207,7 @@ const library = function() {
             readSwitch.appendChild(readCheckbox);
             readSwitch.appendChild(readSlider);
 
-            if (element.haveRead) {
+            if (myLibrary[i].haveRead) {
                 readCheckbox.checked = true;
             } else {
                 readCheckbox.checked = false;
@@ -192,9 +215,9 @@ const library = function() {
 
             readCheckbox.addEventListener('change', function() {
                 if (readCheckbox.checked) {
-                    element.haveRead = true;
+                    myLibrary[i].haveRead = true;
                 } else {
-                    element.haveRead = false;
+                    myLibrary[i].haveRead = false;
                 }
                 // saveLibrary();
             });
@@ -206,7 +229,8 @@ const library = function() {
             delButton.textContent = 'x';
             delButton.onclick = function() {
                 bookList.removeChild(bookCardDiv);
-                myLibrary.splice(myLibrary.indexOf(element), 1);
+                myLibrary.splice(myLibrary.indexOf(myLibrary[i]), 1);
+                setLibrary(myLibrary);
                 // saveLibrary();
                 // console.table(myLibrary); // Remove later
             }
@@ -230,8 +254,8 @@ const library = function() {
         let newTitle = document.getElementById('newTitle').value;
         let isDuplicate = false;
         myLibrary.forEach(function(element) {
-            console.log(newTitle);
-            console.log(element.title);
+            // console.log(newTitle);
+            // console.log(element.title);
             if (newTitle.toLowerCase() === element.title.toLowerCase()) {
                 isDuplicate = true;
             }
@@ -256,7 +280,7 @@ const library = function() {
         }
         const newBook = new Book(newTitle, newAuthor, newNumPages, newHaveRead);
         myLibrary.push(newBook);
-        addToFirestore(newBook);
+        // addToFirestore(newBook);
         console.log(myLibrary);
         // saveLibrary();
         setLibrary(myLibrary);
