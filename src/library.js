@@ -220,6 +220,7 @@ const library = function() {
                     myLibrary[i].haveRead = false;
                 }
                 // saveLibrary();
+                setLibrary(myLibrary);
             });
                 
 
