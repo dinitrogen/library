@@ -14,5 +14,4 @@ There are two versions available:
 
 ### Using Google Firebase as the backend with cloud storage
 [Firebase version](https://library-ac551.web.app/)
-The current version does not load a saved library
-// TODO: add delete and load functionality
+Library data is stored and accessed using Cloud Firestore
